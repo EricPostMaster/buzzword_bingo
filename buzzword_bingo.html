@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corporate Buzzword Bingo</title>
+<style>
+  :root {
+    --bg: #eef2ff;
+    --card: #ffffff;
+    --ink: #20242a;
+    --muted: #6b7280;
+    --accent: #7c3aed;
+    --marked-border: #f59e0b;
+    --free: #dbeafe;
+    --rainbow-1: #ff595e;
+    --rainbow-2: #ffca3a;
+    --rainbow-3: #8ac926;
+    --rainbow-4: #1982c4;
+    --rainbow-5: #4267e8;
+    --rainbow-6: #9b5de5;
+    --rainbow-7: #f15bb5;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #fdf2f8 50%, #ecfeff);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  h1 { margin: 0 0 6px; }
+  .subtitle { color: var(--muted); margin: 0 0 20px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  button {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 13px;
+    cursor: pointer;
+    font-weight: 600;
+    background: #e5e7eb;
+    color: var(--ink);
+  }
+
+  button:hover { filter: brightness(.96); }
+  .primary { background: var(--accent); color: white; }
+
+  .bingo {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .square {
+    aspect-ratio: 1;
+    min-height: 90px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    font-size: clamp(11px, 1.7vw, 15px);
+    font-weight: 650;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+  }
+
+  .square.marked {
+    border-color: var(--marked-border);
+    color: #111827;
+    animation: markPop .18s ease-out;
+  }
+
+  .square.marked:nth-child(7n + 1) { background: var(--rainbow-1); }
+  .square.marked:nth-child(7n + 2) { background: var(--rainbow-2); }
+  .square.marked:nth-child(7n + 3) { background: var(--rainbow-3); }
+  .square.marked:nth-child(7n + 4) { background: var(--rainbow-4); color: white; }
+  .square.marked:nth-child(7n + 5) { background: var(--rainbow-5); color: white; }
+  .square.marked:nth-child(7n + 6) { background: var(--rainbow-6); color: white; }
+  .square.marked:nth-child(7n + 7) { background: var(--rainbow-7); }
+
+  .square.marked::after {
+    content: "✓";
+    position: absolute;
+    top: 3px;
+    right: 7px;
+    font-size: 22px;
+  }
+
+  @keyframes markPop {
+    0% { transform: scale(.88); }
+    70% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes winnerPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(124,58,237,0); }
+    50% { transform: scale(1.08); box-shadow: 0 0 30px rgba(124,58,237,.7); }
+  }
+
+  .square.winner {
+    animation: winnerPulse .65s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  .win-banner {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .win-message {
+    background: linear-gradient(135deg, #ff595e, #ffca3a, #8ac926, #1982c4, #9b5de5, #f15bb5);
+    color: white;
+    font-size: clamp(36px, 8vw, 80px);
+    font-weight: 900;
+    padding: 25px 45px;
+    border-radius: 24px;
+    text-shadow: 2px 3px 0 rgba(0,0,0,.2);
+    box-shadow: 0 15px 60px rgba(0,0,0,.3);
+    animation: victory .9s ease-out;
+  }
+
+  @keyframes victory {
+    0% { transform: scale(.2) rotate(-12deg); opacity: 0; }
+    60% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  .confetti {
+    position: fixed;
+    width: 10px;
+    height: 18px;
+    top: -25px;
+    z-index: 20;
+    animation: fall 2.5s linear forwards;
+  }
+
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); }
+  }
+
+  .square.free {
+    background: var(--free);
+    border-color: #93c5fd;
+  }
+
+  .status {
+    text-align: center;
+    font-weight: 700;
+    margin-top: 15px;
+    min-height: 24px;
+  }
+
+  .side h2 { font-size: 18px; margin-top: 0; }
+
+  textarea {
+    width: 100%;
+    min-height: 230px;
+    resize: vertical;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px;
+    font: inherit;
+    line-height: 1.45;
+  }
+
+  .help {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  .count {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 8px 0 12px;
+  }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>Corporate Buzzword Bingo</h1>
+
+  <div class="layout">
+    <main class="panel">
+      <div class="controls">
+        <button class="primary" onclick="newCard()">New Card</button>
+        <button onclick="clearMarks()">Clear Markers</button>
+      </div>
+
+      <div id="bingo" class="bingo"></div>
+      <div id="status" class="status"></div>
+    </main>
+
+    <aside class="panel side">
+      <h2>Buzzword Collection</h2>
+      <div id="count" class="count"></div>
+      <textarea id="words"></textarea>
+      <div class="help">
+        Put one buzzword or phrase per line. Add or remove anything you want,
+        then click <b>New Card</b>.
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const defaultWords = [
+  "cost discipline",
+  "streamline",
+  "effective",
+  "EBITDA",
+  "operational efficiency",
+  "do more with less",
+  "right-size",
+  "rightsizing",
+  "restructuring",
+  "strategic realignment",
+  "organizational optimization",
+  "synergy",
+  "leverage",
+  "headcount",
+  "workforce optimization",
+  "resource allocation",
+  "resource optimization",
+  "cost savings",
+  "cost reduction",
+  "expense management",
+  "efficiency gains",
+  "productivity",
+  "simplify",
+  "simplification",
+  "agility",
+  "focus on the core",
+  "core competencies",
+  "strategic priorities",
+  "prioritize",
+  "reprioritize",
+  "transformational",
+  "transformation",
+  "operating model",
+  "business transformation",
+  "organizational effectiveness",
+  "span of control",
+  "flatten the organization",
+  "reduce layers",
+  "consolidation",
+  "centralization",
+  "decentralization",
+  "automation",
+  "digital transformation",
+  "AI-powered",
+  "do more with AI",
+  "future-proof",
+  "competitive position",
+  "shareholder value",
+  "margin expansion",
+  "profitable growth",
+  "disciplined growth",
+  "sustainable growth",
+  "challenging environment",
+  "dynamic environment",
+  "uncertain environment",
+  "market headwinds",
+  "macroeconomic pressures",
+  "continued volatility",
+  "demand environment",
+  "business conditions",
+  "tough decisions",
+  "difficult decisions",
+  "hard choices",
+  "unfortunately",
+  "impacted",
+  "affected colleagues",
+  "transition",
+  "separation",
+  "role elimination",
+  "position elimination",
+  "reduction in force",
+  "RIF",
+  "workforce reduction",
+  "talent strategy",
+  "talent density",
+  "performance management",
+  "accountability",
+  "ownership",
+  "high performance culture",
+  "low-hanging fruit",
+  "quick wins",
+  "best practices",
+  "world-class",
+  "one team",
+  "move the needle",
+  "at scale",
+  "thought leadership",
+  "circle back",
+  "take this offline",
+  "boil the ocean",
+  "bandwidth",
+  "deep dive",
+  "drill down",
+  "touch base",
+  "align",
+  "alignment",
+  "stakeholder management",
+  "strategic optionality",
+  "unlock value",
+  "value creation",
+  "maximize value",
+  "north star",
+  "roadmap",
+  "journey",
+  "change management",
+  "culture",
+  "resilience",
+  "velocity",
+  "execution",
+  "operationalize",
+  "synergize"
+];
+
+const wordsEl = document.getElementById("words");
+const bingoEl = document.getElementById("bingo");
+const statusEl = document.getElementById("status");
+const countEl = document.getElementById("count");
+
+wordsEl.value = defaultWords.join("\n");
+
+function getWords() {
+  return [...new Set(
+    wordsEl.value
+      .split("\n")
+      .map(w => w.trim())
+      .filter(Boolean)
+  )];
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function newCard() {
+  alreadyWon = false;
+  document.querySelector(".win-banner")?.remove();
+  document.querySelectorAll(".confetti").forEach(c => c.remove());
+
+  const words = getWords();
+
+  if (words.length < 24) {
+    alert("Please keep at least 24 buzzwords in the collection.");
+    return;
+  }
+
+  const selected = shuffle([...words]).slice(0, 24);
+  selected.splice(12, 0, "FREE SPACE");
+
+  bingoEl.innerHTML = "";
+
+  selected.forEach((word, index) => {
+    const square = document.createElement("div");
+    square.className = "square" + (index === 12 ? " free" : "");
+    square.textContent = word;
+
+    if (index === 12) {
+      square.classList.add("marked");
+    } else {
+      square.addEventListener("click", () => {
+        square.classList.toggle("marked");
+        checkBingo();
+      });
+    }
+
+    bingoEl.appendChild(square);
+  });
+
+  updateCount(words.length);
+  checkBingo();
+}
+
+function clearMarks() {
+  document.querySelectorAll(".square:not(.free)").forEach(square => {
+    square.classList.remove("marked");
+  });
+  checkBingo();
+}
+
+function updateCount(n) {
+  countEl.textContent = `${n} buzzwords in collection`;
+}
+
+let alreadyWon = false;
+
+function checkBingo() {
+  const squares = [...document.querySelectorAll(".square")];
+  if (squares.length !== 25) return;
+
+  const marked = squares.map(s => s.classList.contains("marked"));
+  const lines = [];
+
+  for (let r = 0; r < 5; r++) {
+    lines.push([0,1,2,3,4].map(c => r * 5 + c));
+  }
+
+  for (let c = 0; c < 5; c++) {
+    lines.push([0,1,2,3,4].map(r => r * 5 + c));
+  }
+
+  lines.push([0, 6, 12, 18, 24]);
+  lines.push([4, 8, 12, 16, 20]);
+
+  const winningLine = lines.find(line => line.every(i => marked[i]));
+  const hasBingo = Boolean(winningLine);
+
+  statusEl.textContent = hasBingo ? "🎉 BINGO! Someone said the thing." : "";
+
+  if (hasBingo && !alreadyWon) {
+    alreadyWon = true;
+    winningLine.forEach(i => squares[i].classList.add("winner"));
+    celebrate();
+  }
+
+  if (!hasBingo) {
+    alreadyWon = false;
+    squares.forEach(s => s.classList.remove("winner"));
+    document.querySelector(".win-banner")?.remove();
+  }
+}
+
+function celebrate() {
+  const banner = document.createElement("div");
+  banner.className = "win-banner";
+  banner.innerHTML = '<div class="win-message">🎉 BINGO! 🎉</div>';
+  document.body.appendChild(banner);
+
+  const colors = [
+    "#ff595e", "#ffca3a", "#8ac926",
+    "#1982c4", "#4267e8", "#9b5de5", "#f15bb5"
+  ];
+
+  for (let i = 0; i < 100; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti";
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = Math.random() * .7 + "s";
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(piece);
+
+    setTimeout(() => piece.remove(), 3500);
+  }
+
+  setTimeout(() => banner.remove(), 2200);
+}
+
+newCard();
+</script>
+</body>
+</html>
